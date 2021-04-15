@@ -17,7 +17,7 @@
 namespace EditorNS
 {
 
-    QQueue<Editor*> Editor::m_editorBuffer = QQueue<Editor*>();
+    QQueue<QSharedPointer<Editor>> Editor::m_editorBuffer = QQueue<QSharedPointer<Editor>>();
 
     Editor::Editor(QWidget *parent) :
         QWidget(parent)
@@ -90,18 +90,13 @@ namespace EditorNS
 
     QSharedPointer<Editor> Editor::getNewEditor(QWidget *parent)
     {
-        return QSharedPointer<Editor>(getNewEditorUnmanagedPtr(parent), &Editor::deleteLater);
-    }
-
-    Editor *Editor::getNewEditorUnmanagedPtr(QWidget *parent)
-    {
-        Editor *out;
+        QSharedPointer<Editor> out;
 
         if (m_editorBuffer.length() == 0) {
-            m_editorBuffer.enqueue(new Editor());
-            out = new Editor();
+            addEditorToBuffer(1);
+            out = QSharedPointer<Editor>::create();
         } else if (m_editorBuffer.length() == 1) {
-            m_editorBuffer.enqueue(new Editor());
+            addEditorToBuffer(1);
             out = m_editorBuffer.dequeue();
         } else {
             out = m_editorBuffer.dequeue();
@@ -114,7 +109,7 @@ namespace EditorNS
     void Editor::addEditorToBuffer(const int howMany)
     {
         for (int i = 0; i < howMany; i++)
-            m_editorBuffer.enqueue(new Editor());
+            m_editorBuffer.enqueue(QSharedPointer<Editor>::create());
     }
 
     void Editor::invalidateEditorBuffer()
@@ -158,7 +153,7 @@ namespace EditorNS
                         }
                         this->asyncReplies.erase(it);
 
-                        if (r.callback != 0) {
+                        if (r.callback != nullptr) {
                             QTimer::singleShot(0, [r,data]{ r.callback(data); });
                         }
 
@@ -187,14 +182,11 @@ namespace EditorNS
     void Editor::setFocus()
     {
         m_webView->setFocus();
-        asyncSendMessageWithResultP("C_CMD_SET_FOCUS")
-                .wait(); // FIXME Remove
     }
 
     void Editor::clearFocus()
     {
         m_webView->clearFocus();
-        asyncSendMessageWithResultP("C_CMD_BLUR");
     }
 
     /**
@@ -286,23 +278,25 @@ namespace EditorNS
         }
     }
 
-    void Editor::setLanguageFromFileName(const QString& fileName)
+    void Editor::setLanguageFromFilePath(const QString& filePath)
     {
+        auto name = QFileInfo(filePath).fileName();
+
         auto& cache = LanguageService::getInstance();
-        auto lang = cache.lookupByFileName(fileName);
+        auto lang = cache.lookupByFileName(name);
         if (lang != nullptr) {
             setLanguage(lang);
             return;
         }
-        lang = cache.lookupByExtension(fileName);
+        lang = cache.lookupByExtension(name);
         if (lang != nullptr) {
             setLanguage(lang);
         }
     }
 
-    void Editor::setLanguageFromFileName()
+    void Editor::setLanguageFromFilePath()
     {
-        setLanguageFromFileName(filePath().toString());
+        setLanguageFromFilePath(filePath().toString());
     }
 
     QPromise<void> Editor::setIndentationMode(const Language* lang)
@@ -393,17 +387,7 @@ namespace EditorNS
         m_fileOnDiskChanged = fileOnDiskChanged;
     }
 
-    QString Editor::jsStringEscape(QString str) const {
-        return str.replace("\\", "\\\\")
-                .replace("'", "\\'")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t")
-                .replace("\b", "\\b");
-    }
-
-    void Editor::sendMessage(const QString &msg, const QVariant &data)
+    void Editor::sendMessage(const QString msg, const QVariant data)
     {
 #ifdef QT_DEBUG
         qDebug() << "Legacy message " << msg << " sent.";
@@ -413,14 +397,14 @@ namespace EditorNS
         emit m_jsToCppProxy->messageReceivedByJs(msg, data);
     }
 
-    void Editor::sendMessage(const QString &msg)
+    void Editor::sendMessage(const QString msg)
     {
         sendMessage(msg, 0);
     }
 
     unsigned int messageIdentifier = 0;
 
-    QPromise<QVariant> Editor::asyncSendMessageWithResultP(const QString &msg, const QVariant &data)
+    QPromise<QVariant> Editor::asyncSendMessageWithResultP(const QString msg, const QVariant data)
     {
         unsigned int currentMsgIdentifier = ++messageIdentifier;
 
@@ -464,12 +448,12 @@ namespace EditorNS
         return resultPromise;
     }
 
-    QPromise<QVariant> Editor::asyncSendMessageWithResultP(const QString &msg)
+    QPromise<QVariant> Editor::asyncSendMessageWithResultP(const QString msg)
     {
         return this->asyncSendMessageWithResultP(msg, 0);
     }
 
-    std::shared_future<QVariant> Editor::asyncSendMessageWithResult(const QString &msg, const QVariant &data, std::function<void(QVariant)> callback)
+    std::shared_future<QVariant> Editor::asyncSendMessageWithResult(const QString msg, const QVariant data, std::function<void(QVariant)> callback)
     {
         unsigned int currentMsgIdentifier = ++messageIdentifier;
 
@@ -488,25 +472,15 @@ namespace EditorNS
 
         std::shared_future<QVariant> fut = resultPromise->get_future().share();
 
-
-        std::shared_ptr<QEventLoop> loop = std::make_shared<QEventLoop>();
-        QObject::connect(this, &Editor::asyncReplyReceived, this, [loop, fut, currentMsgIdentifier](unsigned int id, QString, QVariant){
-            if (id == currentMsgIdentifier) {
-                QApplication::processEvents();
-                if (loop->isRunning()) {
-                    loop->quit();
-                }
-            }
-        });
-        loop->exec(QEventLoop::WaitForMoreEvents);
-
-        // Make sure to process all the events before this
-        QApplication::processEvents();
+        while (fut.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
+            QCoreApplication::processEvents(QEventLoop::AllEvents);
+            QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        }
 
         return fut;
     }
 
-    std::shared_future<QVariant> Editor::asyncSendMessageWithResult(const QString &msg, std::function<void(QVariant)> callback)
+    std::shared_future<QVariant> Editor::asyncSendMessageWithResult(const QString msg, std::function<void(QVariant)> callback)
     {
         return this->asyncSendMessageWithResult(msg, 0, callback);
     }
@@ -661,6 +635,11 @@ namespace EditorNS
         asyncSendMessageWithResultP("C_CMD_SET_FONT", tmap);
     }
 
+    void Editor::setLineNumbersVisible(bool visible)
+    {
+        asyncSendMessageWithResultP("C_CMD_SET_LINE_NUMBERS_VISIBLE", visible);
+    }
+
     QTextCodec *Editor::codec() const
     {
         return m_codec;
@@ -774,15 +753,68 @@ namespace EditorNS
         // 2. Set WebView's bg-color to white to prevent visual artifacts when printing less than one page.
         // 3. Set C_CMD_DISPLAY_PRINT_STYLE to hide UI elements like the gutter.
 
+#if QT_VERSION >= QT_VERSION_CHECK(5,8,0)
+        QColor prevBackgroundColor = m_webView->page()->backgroundColor();
+        QString prevStylesheet = m_webView->styleSheet();
+
+        this->setLineWrap(true);
         setTheme(themeFromName("default"));
+        m_webView->page()->setBackgroundColor(Qt::transparent);
         m_webView->setStyleSheet("background-color: white");
         sendMessage("C_CMD_DISPLAY_PRINT_STYLE");
-        m_webView->page()->print(printer.get(), [printer, this](bool /*success*/) {
+        m_webView->page()->print(printer.get(), [=](bool /*success*/) {
             // Note: it is important to capture "printer" in order to keep the shared_ptr alive.
             sendMessage("C_CMD_DISPLAY_NORMAL_STYLE");
-            m_webView->setStyleSheet("");
+            m_webView->setStyleSheet(prevStylesheet);
+            m_webView->page()->setBackgroundColor(prevBackgroundColor);
             setTheme(themeFromName(NqqSettings::getInstance().Appearance.getColorScheme()));
+            this->setLineWrap(NqqSettings::getInstance().General.getWordWrap());
         });
+#endif
+    }
+
+    QPromise<QByteArray> Editor::printToPdf(const QPageLayout& pageLayout)
+    {
+        // 1. Set theme to default because dark themes would force the printer to color the entire
+        //    document in the background color. Default theme has white background.
+        // 2. Set WebView's bg-color to white to prevent visual artifacts when printing less than one page.
+        // 3. Set C_CMD_DISPLAY_PRINT_STYLE to hide UI elements like the gutter.
+
+        return QPromise<QByteArray>(
+            [&](const QPromiseResolve<QByteArray>& resolve, const QPromiseReject<QByteArray>& reject) {
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
+                QColor prevBackgroundColor = m_webView->page()->backgroundColor();
+                QString prevStylesheet = m_webView->styleSheet();
+
+                this->setLineWrap(true);
+                setTheme(themeFromName("default"));
+                m_webView->page()->setBackgroundColor(Qt::transparent);
+                m_webView->setStyleSheet("background-color: white");
+                asyncSendMessageWithResultP("C_CMD_DISPLAY_PRINT_STYLE").wait();
+
+                m_webView->page()->printToPdf(
+                    [=](const QByteArray& data) {
+                        QTimer::singleShot(0, [=]() {
+                            asyncSendMessageWithResultP("C_CMD_DISPLAY_NORMAL_STYLE").wait();
+                            m_webView->setStyleSheet(prevStylesheet);
+                            m_webView->page()->setBackgroundColor(prevBackgroundColor);
+                            setTheme(themeFromName(NqqSettings::getInstance().Appearance.getColorScheme()));
+                            this->setLineWrap(NqqSettings::getInstance().General.getWordWrap());
+                        });
+
+                        if (data.isEmpty() || data.isNull()) {
+                            reject(QByteArray());
+                        } else {
+                            resolve(data);
+                        }
+                    },
+                    pageLayout);
+
+#else
+                reject(QByteArray());
+#endif
+            });
     }
 
     QPromise<QString> Editor::getCurrentWord()

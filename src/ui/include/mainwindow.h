@@ -27,8 +27,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(const QString &workingDirectory, const QStringList &arguments, QWidget *parent = 0);
-    explicit MainWindow(const QStringList &arguments, QWidget *parent = 0);
+    explicit MainWindow(const QString &workingDirectory, const QStringList &arguments, QWidget *parent = nullptr);
+    explicit MainWindow(const QStringList &arguments, QWidget *parent = nullptr);
     ~MainWindow();
 
     static QList<MainWindow *> instances();
@@ -58,8 +58,7 @@ public:
 
     void openCommandLineProvidedUrls(const QString &workingDirectory, const QStringList &arguments);
 
-    Editor*   currentEditor();
-    QSharedPointer<Editor> currentEditorSharedPtr();
+    QSharedPointer<Editor> currentEditor();
     QAction*  addExtensionMenuItem(QString extensionId, QString text);
     void showExtensionsMenu(bool show);
 
@@ -79,7 +78,7 @@ public:
     DocEngine*  getDocEngine() const;
     void generateRunMenu();
 public slots:
-    void refreshEditorUiInfo(Editor *editor);
+    void refreshEditorUiInfo(QSharedPointer<Editor> editor);
     void refreshEditorUiCursorInfo(QMap<QString, QVariant> data);
 
 protected:
@@ -105,6 +104,7 @@ private slots:
     void on_actionCopy_triggered();
     void on_actionPaste_triggered();
     void on_actionCut_triggered();
+    void on_actionBegin_End_Select_triggered();
     void on_currentEditorChanged(EditorTabWidget* tabWidget, int tab);
     void on_editorAdded(EditorTabWidget* tabWidget, int tab);
     void on_cursorActivity(QMap<QString, QVariant> data);
@@ -126,7 +126,7 @@ private slots:
     void on_fileOnDiskChanged(EditorTabWidget *tabWidget, int tab, bool removed);
     void on_actionReplace_triggered();
     void on_actionPlain_text_triggered();
-    void on_currentLanguageChanged(QString id, QString name);
+    void on_currentLanguageChanged(QSharedPointer<Editor> sender, QString, QString);
     void on_actionRestore_Default_Zoom_triggered();
     void on_actionZoom_In_triggered();
     void on_actionZoom_Out_triggered();
@@ -134,6 +134,8 @@ private slots:
     void on_actionUPPERCASE_triggered();
     void on_actionLowercase_triggered();
     void on_actionClose_All_BUT_Current_Document_triggered();
+    void on_actionCloseLeft_triggered();
+    void on_actionCloseRight_triggered();
     void on_actionSave_All_triggered();
     void on_bannerRemoved(QWidget *banner);
     void on_documentSaved(EditorTabWidget *tabWidget, int tab);
@@ -196,6 +198,7 @@ private slots:
     void on_actionShow_Menubar_toggled(bool arg1);
     void on_actionShow_Toolbar_toggled(bool arg1);
     void on_actionMath_Rendering_toggled(bool on);
+    void on_actionToggle_To_Former_Tab_triggered();
 
 private:
     static QList<MainWindow*> m_instances;
@@ -212,10 +215,12 @@ private:
     QPushButton* m_sbTextFormatBtn;
     QPushButton* m_sbOvertypeBtn;
     NqqSettings&          m_settings;
-    frmSearchReplace*     m_frmSearchReplace = 0;
+    frmSearchReplace*     m_frmSearchReplace = nullptr;
     bool                  m_overwrite = false; // Overwrite mode vs Insert mode
     QString               m_workingDirectory;
     QMap<QSharedPointer<Extensions::Extension>, QMenu*> m_extensionMenus;
+    QPair<int, int>       beginSelectPosition;
+    bool                  beginSelectPositionSet = false;
 
     AdvancedSearchDock*  m_advSearchDock;
 
@@ -270,9 +275,9 @@ private:
     void                restoreWindowSettings();
     void                loadIcons();
     void                updateRecentDocsInMenu();
-    void                convertEditorEncoding(Editor *editor, QTextCodec *codec, bool bom);
+    void                convertEditorEncoding(QSharedPointer<Editor> editor, QTextCodec *codec, bool bom);
     void                toggleOverwrite();
-    void                checkIndentationMode(Editor *editor);
+    void                checkIndentationMode(QSharedPointer<Editor> editor);
     QPromise<QStringList> currentWordOrSelections();
     QPromise<QString>     currentWordOrSelection();
     void                currentWordOnlineSearch(const QString &searchUrl);

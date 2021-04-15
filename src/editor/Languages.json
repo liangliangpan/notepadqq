@@ -567,7 +567,8 @@
       "jsx",
       "js.erb",
       "jsm",
-      "_js"
+      "_js",
+      "mjs"
     ]
   },
   "json":{
@@ -601,7 +602,8 @@
     "mode":"javascript",
     "mime":"application/typescript",
     "fileExtensions":[
-      "ts"
+      "ts",
+      "tsx"
     ]
   },
   "jinja2":{

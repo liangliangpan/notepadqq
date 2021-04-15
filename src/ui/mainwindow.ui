@@ -145,6 +145,7 @@
     <addaction name="actionPaste"/>
     <addaction name="actionDelete"/>
     <addaction name="actionSelect_All"/>
+    <addaction name="actionBegin_End_Select"/>
     <addaction name="separator"/>
     <addaction name="menuCopy_to_Clipboard"/>
     <addaction name="menuConvert_Case_to"/>
@@ -205,6 +206,7 @@
     <addaction name="menuMove_Clone_Current_Document"/>
     <addaction name="actionWord_wrap"/>
     <addaction name="actionMath_Rendering"/>
+    <addaction name="actionToggle_To_Former_Tab"/>
     <addaction name="separator"/>
     <addaction name="separator"/>
     <addaction name="actionFull_Screen"/>
@@ -357,6 +359,16 @@
   <action name="actionClose_All_BUT_Current_Document">
    <property name="text">
     <string>Close All &amp;BUT Current Document</string>
+   </property>
+  </action>
+  <action name="actionCloseLeft">
+   <property name="text">
+    <string>Close Documents to the Left</string>
+   </property>
+  </action>
+  <action name="actionCloseRight">
+   <property name="text">
+    <string>Close Documents to the Right</string>
    </property>
   </action>
   <action name="actionLoad_Session">
@@ -614,6 +626,9 @@
   <action name="actionClone_to_Other_View">
    <property name="text">
     <string>&amp;Clone to Other View</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionMove_to_New_Window">
@@ -1033,6 +1048,25 @@
    </property>
    <property name="text">
     <string>S&amp;how Toolbar</string>
+   </property>
+  </action>
+  <action name="actionBegin_End_Select">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Begin/End Select</string>
+   </property>
+  </action>
+  <action name="actionToggle_To_Former_Tab">
+   <property name="text">
+    <string>Toggle To Former Tab</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Back to Former Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
    </property>
   </action>
  </widget>

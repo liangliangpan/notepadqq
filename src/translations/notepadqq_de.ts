@@ -17,7 +17,7 @@
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="176"/>
         <source>Go To Previous Result (Shift+F4)</source>
-        <translation>Zum vorherigen Ergebis (Umschalt+F4)</translation>
+        <translation>Zum vorherigen Ergebnis (Umschalt+F4)</translation>
     </message>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="181"/>
@@ -107,7 +107,7 @@
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="310"/>
         <source>Search in Files on File System</source>
-        <translation>Such in Dateien auf Datenträger</translation>
+        <translation>Suche in Dateien auf Datenträger</translation>
     </message>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="325"/>
@@ -157,7 +157,7 @@
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="358"/>
         <source>Match Whole Words Only</source>
-        <translation>Nur Ganze Wörter</translation>
+        <translation>Nur ganze Wörter</translation>
     </message>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="359"/>
@@ -182,7 +182,7 @@
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="423"/>
         <source>&lt;h3&gt;One or more searches are still in progress&lt;/h3&gt;</source>
-        <translation>&lt;h3&gt;Ein oder mehr Suchvorgänge noch am laufen&lt;/h3&gt;</translation>
+        <translation>&lt;h3&gt;Ein oder mehr Suchvorgänge laufen noch&lt;/h3&gt;</translation>
     </message>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="424"/>
@@ -202,7 +202,7 @@
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="741"/>
         <source>&lt;h3&gt;This search is still in progress.&lt;/h3&gt; The search will be canceled and all results discarded if you continue.</source>
-        <translation>&lt;h3&gt;Suchvorgang noch nicht beendet.&lt;/h3&gt; Falls Sie fortfahren wird die Suche abgebrochen und die Ergebnisse verworfen.</translation>
+        <translation>&lt;h3&gt;Suchvorgang noch nicht beendet.&lt;/h3&gt; Falls Sie fortfahren, wird die Suche abgebrochen und die Ergebnisse verworfen.</translation>
     </message>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="852"/>
@@ -233,7 +233,8 @@
         <location filename="../ui/Search/advancedsearchdock.cpp" line="904"/>
         <source>Replacing was unsuccessful for %1 file(s):
 </source>
-        <translation>Konnte Treffer in %1 Datei(en) nicht ersetzen:</translation>
+        <translation>Konnte Treffer in %1 Datei(en) nicht ersetzen:
+</translation>
     </message>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="910"/>
@@ -1131,7 +1132,7 @@
     <message>
         <location filename="../ui/mainwindow.ui" line="672"/>
         <source>Run a Macro Multiple Times...</source>
-        <translation>Lasse ein Makro mehrfach laufen...</translation>
+        <translation>Makro mehrmals ausführen...</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="680"/>
@@ -1495,7 +1496,8 @@ Wollen Sie dennoch speichern?</translation>
         <location filename="../ui/mainwindow.cpp" line="2055"/>
         <source>The following files do not exist anymore. Do you want to open them anyway?
 </source>
-        <translation>Die folgenden Dateien existieren nicht mehr. Sollen sie dennoch geöffnet werden?</translation>
+        <translation>Die folgenden Dateien existieren nicht mehr. Sollen sie dennoch geöffnet werden?
+</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2166"/>
@@ -1768,7 +1770,7 @@ Wollen Sie dennoch speichern?</translation>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="147"/>
         <source>Matches a word character</source>
-        <translation>Entspricht einem Word</translation>
+        <translation>Entspricht einem Zeichen in einem Wort</translation>
     </message>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="148"/>
@@ -1803,7 +1805,7 @@ Wollen Sie dennoch speichern?</translation>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="154"/>
         <source>Use in a replace operation to refer to the n&apos;th capture group</source>
-        <translation>In Operation verwenden um Bezug zu nehmen auf die n&apos;te erfasste Gruppe</translation>
+        <translation>Im Ersetzungs-Vorgang verwenden, um auf die n&apos;te erfasste Gruppe zu verweisen</translation>
     </message>
     <message>
         <location filename="../ui/Search/advancedsearchdock.cpp" line="704"/>
@@ -2051,7 +2053,7 @@ Wollen Sie dennoch speichern?</translation>
     <message>
         <location filename="../ui/frmpreferences.ui" line="81"/>
         <source>Toolbar</source>
-        <translation>Wergzeugleiste</translation>
+        <translation>Werkzeugleiste</translation>
     </message>
     <message>
         <location filename="../ui/frmpreferences.ui" line="86"/>
@@ -2081,7 +2083,7 @@ Wollen Sie dennoch speichern?</translation>
     </message>
     <message>
         <location filename="../ui/frmpreferences.ui" line="140"/>
-        <source>This option allows Notepadqq to recover your documents after a crash even if they were not explicitely saved.</source>
+        <source>This option allows Notepadqq to recover your documents after a crash even if they were not explicitly saved.</source>
         <translation>Hilft dabei Dokumente nach einem Absturz wieder herzustellen, auch ohne diese vorher explizit zu sichern.</translation>
     </message>
     <message>

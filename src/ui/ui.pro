@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui svg widgets printsupport network webenginewidgets webchannel websockets
-
-CONFIG += c++14
+QT       += core gui svg widgets printsupport network webenginewidgets webchannel websockets dbus
+CONFIG += c++14 link_pkgconfig
+PKGCONFIG += uchardet
 
 !macx: TARGET = notepadqq-bin
 macx: TARGET = notepadqq
@@ -108,7 +108,8 @@ SOURCES += main.cpp\
     Search/searchobjects.cpp \
     Search/searchinstance.cpp \
     stats.cpp \
-    Sessions/backupservice.cpp
+    Sessions/backupservice.cpp \
+    svgiconengine.cpp
 
 HEADERS  += include/mainwindow.h \
     include/topeditorcontainer.h \
@@ -156,7 +157,8 @@ HEADERS  += include/mainwindow.h \
     include/Search/filereplacer.h \
     include/Search/searchinstance.h \
     include/stats.h \
-    include/Sessions/backupservice.h
+    include/Sessions/backupservice.h \
+    include/svgiconengine.h
 
 FORMS    += mainwindow.ui \
     frmabout.ui \

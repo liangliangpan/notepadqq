@@ -34,9 +34,9 @@
 #include <QString>
 #include <QUrl>
 
-#define POINTVERSION "1.4.8" // major.minor.revision
+#define POINTVERSION "2.0.0-beta+git" // major.minor.revision
 
-#define COPYRIGHT_YEAR "2018"
+#define COPYRIGHT_YEAR "2019"
 
 #define MIB_UTF_8 106
 
@@ -66,11 +66,16 @@ public:
     static QString fileNameFromUrl(const QUrl &url);
     static QSharedPointer<QCommandLineParser> getCommandLineArgumentsParser(const QStringList &arguments);
 
-    static void showQtVersionWarning(bool showCheckBox, QWidget *parent = 0);
+    static void showQtVersionWarning(bool showCheckBox, QWidget *parent = nullptr);
 
     static QString extensionsPath();
 
     static QList<QString> translations();
+
+    /**
+     * @brief Print environment information for debugging purposes.
+     */
+    static void printEnvironmentInfo();
 
 signals:
     void newWindow(MainWindow *window);

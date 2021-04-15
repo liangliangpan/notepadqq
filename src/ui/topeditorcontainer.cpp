@@ -72,7 +72,12 @@ EditorTabWidget *TopEditorContainer::inactiveTabWidget(bool createIfNotExists)
         return nullptr;
 }
 
-EditorTabWidget *TopEditorContainer::tabWidgetFromEditor(Editor *editor)
+EditorTabWidget *TopEditorContainer::tabWidgetFromEditor(QSharedPointer<Editor> editor)
+{
+    return tabWidgetFromEditor(editor.data());
+}
+
+EditorTabWidget *TopEditorContainer::tabWidgetFromEditor(Editor* editor)
 {
     for (int i = 0; i < count(); i++) {
         if (tabWidget(i)->indexOf(editor) > -1)
@@ -144,14 +149,14 @@ void TopEditorContainer::on_editorAdded(int tab)
     emit editorAdded(tabWidget, tab);
 }
 
-void TopEditorContainer::forEachEditor(std::function<bool (const int, const int, EditorTabWidget *, Editor *)> callback)
+void TopEditorContainer::forEachEditor(std::function<bool (const int, const int, EditorTabWidget *, QSharedPointer<Editor>)> callback)
 {
     forEachEditor(false, callback);
 }
 
-std::vector<Editor*> TopEditorContainer::getOpenEditors()
+std::vector<QSharedPointer<Editor>> TopEditorContainer::getOpenEditors()
 {
-    std::vector<Editor*> editors;
+    std::vector<QSharedPointer<Editor>> editors;
 
     for (int i = 0; i < count(); i++) {
         EditorTabWidget *tabW = tabWidget(i);
@@ -181,7 +186,7 @@ void TopEditorContainer::disconnectAllTabWidgets()
 }
 
 void TopEditorContainer::forEachEditor(bool backwardIndexes,
-                                       std::function<bool (const int tabWidgetId, const int editorId, EditorTabWidget *tabWidget, Editor *editor)> callback)
+                                       std::function<bool (const int tabWidgetId, const int editorId, EditorTabWidget *tabWidget, QSharedPointer<Editor> editor)> callback)
 {
     if (backwardIndexes) {
         for (int i = count() - 1; i >= 0; i--) {
@@ -203,7 +208,7 @@ void TopEditorContainer::forEachEditor(bool backwardIndexes,
 }
 
 QPromise<void> TopEditorContainer::forEachEditorAsync(bool backwardIndices,
-                                                    std::function<void (const int tabWidgetId, const int editorId, EditorTabWidget *tabWidget, Editor *editor, std::function<void()> goOn, std::function<void()> stop)> callback)
+                                                    std::function<void (const int tabWidgetId, const int editorId, EditorTabWidget *tabWidget, QSharedPointer<Editor> editor, std::function<void()> goOn, std::function<void()> stop)> callback)
 {
     return QPromise<void>([=](const auto& resolve, const auto&) {
 
@@ -216,31 +221,31 @@ QPromise<void> TopEditorContainer::forEachEditorAsync(bool backwardIndices,
                     }
                     if (j < 0) {
                         if (i-1 >= 0) {
-                            iteration(i-1, tabWidget(i-1)->count() - 1);
+                            iteration(i-1, this->tabWidget(i-1)->count() - 1);
                         }
                         return;
                     }
 
-                    EditorTabWidget *tabW = tabWidget(i);
+                    EditorTabWidget *tabW = this->tabWidget(i);
                     callback(i, j, tabW, tabW->editor(j), iteration(i, j-1), [resolve](){ resolve(); });
                 };
             };
 
-            iteration(count() - 1, tabWidget(0)->count() - 1)();
+            iteration(this->count() - 1, this->tabWidget(0)->count() - 1)();
 
         } else {
             std::function<std::function<void()>(int,int)> iteration = [=](int i, int j) {
                 return [=]() {
-                    if (i >= count()) {
+                    if (i >= this->count()) {
                         resolve();
                         return;
                     }
-                    if (j >= tabWidget(i)->count()) {
+                    if (j >= this->tabWidget(i)->count()) {
                         iteration(i+1, 0);
                         return;
                     }
 
-                    EditorTabWidget *tabW = tabWidget(i);
+                    EditorTabWidget *tabW = this->tabWidget(i);
                     callback(i, j, tabW, tabW->editor(j), iteration(i, j+1), [resolve](){ resolve(); });
                 };
             };
@@ -250,14 +255,14 @@ QPromise<void> TopEditorContainer::forEachEditorAsync(bool backwardIndices,
     });
 }
 
-QPromise<void> TopEditorContainer::forEachEditorConcurrent(std::function<void (const int tabWidgetId, const int editorId, EditorTabWidget *tabWidget, Editor *editor, std::function<void()> done)> callback)
+QPromise<void> TopEditorContainer::forEachEditorConcurrent(std::function<void (const int tabWidgetId, const int editorId, EditorTabWidget *tabWidget, QSharedPointer<Editor> editor, std::function<void()> done)> callback)
 {
     return QPromise<void>([=](const auto& resolve, const auto&) {
 
         // Collect all the indices we're going to use
         std::vector<std::pair<int,int>> indices;
-        for (int i = 0; i < count(); i++) {
-            EditorTabWidget *tabW = tabWidget(i);
+        for (int i = 0; i < this->count(); i++) {
+            EditorTabWidget *tabW = this->tabWidget(i);
             for (int j = 0; j < tabW->count(); j++) {
                 indices.push_back(std::make_pair(i, j));
             }
@@ -266,10 +271,10 @@ QPromise<void> TopEditorContainer::forEachEditorConcurrent(std::function<void (c
         // Counts the number of iterations
         std::shared_ptr<int> cnt = std::make_shared<int>(indices.size());
 
-        for (const auto idx : indices) {
+        for (const auto& idx : indices) {
             int i = idx.first;
             int j = idx.second;
-            callback(i, j, tabWidget(i), tabWidget(i)->editor(j), [cnt, resolve](){
+            callback(i, j, this->tabWidget(i), this->tabWidget(i)->editor(j), [cnt, resolve](){
                 (*cnt)--;
                 if (*cnt == 0) {
                     resolve();

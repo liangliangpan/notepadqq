@@ -11,7 +11,7 @@
 #include "include/stats.h"
 
 #include <QDateTime>
-#include <QFile>
+#include <QFileInfo>
 #include <QLocale>
 #include <QObject>
 #include <QTranslator>
@@ -87,6 +87,11 @@ int main(int argc, char *argv[])
     // Check for "run-and-exit" options like -h or -v
     const auto parser = Notepadqq::getCommandLineArgumentsParser(QApplication::arguments());
 
+    if (parser->isSet("print-debug-info")) {
+        Notepadqq::printEnvironmentInfo();
+        return EXIT_SUCCESS;
+    }
+
     // Check if we're running as root
     if( getuid() == 0 && !parser->isSet("allow-root") ) {
         qWarning() << QObject::tr(
@@ -105,7 +110,7 @@ int main(int argc, char *argv[])
         QSharedPointer<QCommandLineParser> parser = Notepadqq::getCommandLineArgumentsParser(arguments);
         if (parser->isSet("new-window")) {
             // Open a new window
-            MainWindow *win = new MainWindow(workingDirectory, arguments, 0);
+            MainWindow *win = new MainWindow(workingDirectory, arguments, nullptr);
             win->show();
         } else {
             // Send the args to the last focused window
@@ -126,14 +131,11 @@ int main(int argc, char *argv[])
     // There are no other instances: start a new server.
     a.startServer();
 
-    Editor::addEditorToBuffer(10);
-
-    QFile file(Notepadqq::editorPath());
-    if (!file.open(QIODevice::ReadOnly)) {
-        qCritical() << "Can't open file: " + file.fileName();
+    QFileInfo finfo(Notepadqq::editorPath());
+    if (!finfo.isReadable()) {
+        qCritical() << "Can't open file: " + finfo.filePath();
         return EXIT_FAILURE;
     }
-    file.close();
 
     if (Extensions::ExtensionsLoader::extensionRuntimePresent()) {
         Extensions::ExtensionsLoader::startExtensionsServer();
@@ -172,9 +174,16 @@ int main(int argc, char *argv[])
     qDebug() << QString("Started in " + QString::number(__aet_elapsed / 1000 / 1000) + "msec").toStdString().c_str();
 #endif
 
-    Stats::init();
+    // Initialize stats, but delay so that we are sure that
+    // any dialog will open on top of MainWindow without blocking it.
+    QTimer::singleShot(0, [](){
+        Stats::init();
+    });
 
     auto retVal = a.exec();
+
+    // Properly cleanup cached editors
+    Editor::invalidateEditorBuffer();
 
     BackupService::clearBackupData(); // Clear autosave cache on proper shutdown
     return retVal;
